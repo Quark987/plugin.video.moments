@@ -1,0 +1,30 @@
+# Synology Moments language file
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.moments\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgctxt "#30000"
+msgid "General"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Password"
+msgstr ""
+
+msgctxt "#30201"
+msgid "Username"
+msgstr ""
+
+msgctxt "#30203"
+msgid "Host IP"
+msgstr ""
+
+msgctxt "#30204"
+msgid "Port"
+msgstr ""

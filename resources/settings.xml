@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="30000">
+		<setting id="username" type="text" label="30201" default="kodi"/>
+		<setting id="password" type="text" label="30004" default="kodi" option="hidden"/>
+		<setting id="host" type="ipaddress" label="30203" default="192.168.0.168"/>
+		<setting id="port" type="number" label="30204" default="5000"/>
+	</category>
+</settings>
