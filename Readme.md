@@ -1,4 +1,4 @@
-Install in the given order
+In case of package issues, install in the given order
 
 1. https://mirrors.kodi.tv/addons/krypton/script.module.urllib3/script.module.urllib3-1.25.6.zip
 2. https://mirrors.kodi.tv/addons/krypton/script.module.chardet/script.module.chardet-3.0.4.zip
