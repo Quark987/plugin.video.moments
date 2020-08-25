@@ -22,7 +22,7 @@ addon = xbmcaddon.Addon('plugin.video.moments')
 moments = SynologyMoments()
 
 category_titles = {'person':'People', 'shared':'Shared', 'concept':'Subjects', 'geocoding':'Places', 'recently_added':'Recently added',
-            'general_tag':'Tags', 'album':'Personal albums', 'video':'Videos'}
+            'general_tag':'Tags', 'album':'Personal albums', 'video':'Videos', 'search':'Search'}
 
 def get_url(**kwargs):
     """
@@ -57,7 +57,7 @@ def list_categories():
     xbmcplugin.endOfDirectory(_handle)
 
 
-def list_albums(category):
+def list_albums(category, search_string=None):
     """
     Create the list of video categories in the Kodi interface.
     """
@@ -68,7 +68,7 @@ def list_albums(category):
     # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
     # Get video categories
-    albums = moments.get_albums(category)
+    albums = moments.get_albums(category, search_string)
     # Iterate through categories
     for k in range(len(albums)):
         # Create a list item with a text label and a thumbnail image.
@@ -94,7 +94,7 @@ def list_albums(category):
     xbmcplugin.endOfDirectory(_handle)
 
 
-def list_photos(list_id):
+def list_photos(list_id, keyword=None):
     """
     Create the list of playable videos in the Kodi interface.
 
@@ -106,9 +106,9 @@ def list_photos(list_id):
     xbmcplugin.setPluginCategory(_handle, list_id)
     # Set plugin content. It allows Kodi to select appropriate views
     # for this type of content.
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(_handle, 'images')
     # Get the list of videos in the category.
-    photos = moments.get_photos(list_id)
+    photos = moments.get_photos(list_id, keyword)
 
     # Iterate through videos.
     for k in range(len(photos)):
@@ -153,6 +153,31 @@ def list_photos(list_id):
     xbmcplugin.endOfDirectory(_handle)
 
 
+def list_search_results(keyword):
+    xbmcplugin.setPluginCategory(_handle, 'Search')
+    xbmcplugin.setContent(_handle, 'videos')
+
+    list_item = xbmcgui.ListItem(label='Albums')
+    url = get_url(action='search_albums', keyword=keyword)
+    is_folder = True
+    xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+
+    list_item = xbmcgui.ListItem(label='Items')
+    url = get_url(action='search_items', keyword=keyword)
+    is_folder = True
+    xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+
+    xbmcplugin.endOfDirectory(_handle)
+
+
+def list_search_albums(keyword):
+    return list_albums('search', keyword)
+
+
+def list_search_items(keyword):
+    return list_photos('search', keyword)
+
+
 def play_content(photo_ids):
     """
     Play a video by the provided path.
@@ -169,6 +194,14 @@ def play_content(photo_ids):
     xbmc.executebuiltin('ShowPicture("{0}")'.format(url))
 
 
+def get_user_input():   
+    kb = xbmc.Keyboard()
+    kb.doModal() # Onscreen keyboard appears
+    if not kb.isConfirmed():
+        return
+    query = kb.getText() # User input
+    return query
+
 def router(paramstring):
     """
     Router function that calls other functions
@@ -184,8 +217,16 @@ def router(paramstring):
         if params['action'] == 'show_category':
             if (params['category'] == 'recently_added') or (params['category'] == 'video'):
                 list_photos(params['category'])     # There are no albums in recently added or video
+            elif params['category'] == 'search':
+                keyword = get_user_input()
+                if keyword is not None and len(keyword)>0:
+                    list_search_results(keyword)
             else:
                 list_albums(params['category'])     # List albums within each category
+        elif params['action'] == 'search_albums':
+            list_search_albums(params['keyword'])
+        elif params['action'] == 'search_items':
+            list_search_items(params['keyword'])
         elif params['action'] == 'show_album':
             list_photos(params['list_id'])          # Display the list of videos in a provided category.
         elif params['action'] == 'play':
