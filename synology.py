@@ -114,13 +114,12 @@ class SynologyMoments(object):
                 'offset':0, 'additional':'["thumbnail","resolution","orientation","video_convert","video_meta"]'}
 
             id_key, id_value = list_id.split('=')
-            if id_key == 'search_id':
+            if id_key == 'search_id' or id_key == 'shared_id':
                 id_key = 'album_id'
 
             data[id_key] = id_value # Add the proper id (geocoding_id, person_id, album_id, ...)
 
         photos = self.session.post(url, data=data, verify=False, cookies=self.cookies, headers=self.headers).json() # list the photos (and videos)
-        base_url = "http://{}:{}/webapi/entry.cgi?".format(self.nas_name, self.nas_port)
         params = {'api':'SYNO.Photo.Thumbnail', 'type':'"unit"', 'size':'sm', 'method':'get','version':1, 'SynoToken':self.syno_token}
 
         kodi_header = self.kodi_header()
@@ -128,7 +127,7 @@ class SynologyMoments(object):
         for k in range(len(photos['data']['list'])):
             params['id'] = str(photos['data']['list'][k]['additional']['thumbnail']['unit_id'])
             params['cache_key'] = str(photos['data']['list'][k]['additional']['thumbnail']['cache_key'])
-            photos['data']['list'][k]['url'] = base_url + urlencode(params) + kodi_header
+            photos['data']['list'][k]['url'] = url + '?' + urlencode(params) + kodi_header
 
         return photos['data']['list']
     
