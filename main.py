@@ -120,7 +120,7 @@ def list_photos(list_id, keyword=None):
                           'fanart': photos[k]['url']})
 
         # Setup url for both videos and photos
-        if 'video_convert' in photos[k]['additional'].keys():       # If it's a video
+        if photos[k]['type'] == 'video':
             list_item.setProperty('IsPlayable', 'true')             # Set 'IsPlayable' property to 'true'.
             list_item.setInfo('video', {'title': photos[k]['filename'],
                                     'mediatype': 'video'})
@@ -141,6 +141,8 @@ def list_photos(list_id, keyword=None):
 
             url = moments.get_photo_url(photo_id, photo_cache_key)
             # url = get_url(action='play', content_id=photo_id+'/'+photo_cache_key)
+
+            list_item.setMimeType('image/'+photos[k]['filename'].split('.')[-1])    # Predefine the mime type, otherwise it takes ages
             
         # Add the list item to a virtual Kodi folder.
         # is_folder = False means that this item won't open any sub-list.
