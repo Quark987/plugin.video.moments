@@ -138,9 +138,9 @@ def list_photos(list_id, keyword=None):
 
             photo_cache_key = photos[k]['additional']['thumbnail']['cache_key']
             photo_id = str(photos[k]['additional']['thumbnail']['unit_id'])
-            
-            # url = moments.get_photo_url(photo_id, photo_cache_key)
-            url = get_url(action='play', content_id=photo_id+'/'+photo_cache_key)
+
+            url = moments.get_photo_url(photo_id, photo_cache_key)
+            # url = get_url(action='play', content_id=photo_id+'/'+photo_cache_key)
             
         # Add the list item to a virtual Kodi folder.
         # is_folder = False means that this item won't open any sub-list.

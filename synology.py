@@ -137,7 +137,7 @@ class SynologyMoments(object):
 
         params = {'api':'SYNO.Photo.Thumbnail', 'method':'get', 'version':1, 'SynoToken':self.syno_token, \
                 'size':'xl', 'cache_key':photo_cache_key, 'id':photo_id, 'type':'unit'}
-        base_url = "http://{}:{}/webapi/entry.cgi?".format(self.nas_name, self.nas_port)
+        base_url = "http://{}:{}/webapi/entry.cgi.jpg?".format(self.nas_name, self.nas_port)
 
         return base_url + urlencode(params) + kodi_header
 
