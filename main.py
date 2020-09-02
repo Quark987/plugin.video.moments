@@ -38,7 +38,7 @@ def get_url(**kwargs):
 
 def list_categories():
     xbmcplugin.setPluginCategory(_handle, 'My Album Collection')
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(_handle, 'images')
     categories = moments.get_categories()
 
     for category in categories:
@@ -132,7 +132,7 @@ def list_photos(list_id, keyword=None, passphrase=None):        # Keyword for se
 
 def list_shared():
     xbmcplugin.setPluginCategory(_handle, 'Shared')
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(_handle, 'images')
 
     list_item = xbmcgui.ListItem(label='Shared with others')
     url = get_url(action='shared_with_others')
@@ -149,7 +149,7 @@ def list_shared():
 
 def list_search_results(keyword):
     xbmcplugin.setPluginCategory(_handle, 'Search')
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(_handle, 'images')
 
     list_item = xbmcgui.ListItem(label='Albums')
     url = get_url(action='search_albums', keyword=keyword)
