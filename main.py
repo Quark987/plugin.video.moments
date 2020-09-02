@@ -46,7 +46,7 @@ def list_categories():
 
         addon_dir = xbmc.translatePath( addon.getAddonInfo('path') )
         art_url = os.path.join(addon_dir, 'resources', 'icon_'+category+'.png')
-        xbmc.log(art_url)
+        
         list_item.setArt({'thumb': art_url,
                           'icon': art_url,
                           'fanart': art_url})
@@ -57,21 +57,12 @@ def list_categories():
     xbmcplugin.endOfDirectory(_handle)
 
 
-def list_albums(category, search_string=None):
-    """
-    Create the list of video categories in the Kodi interface.
-    """
-    # Set plugin category. It is displayed in some skins as the name
-    # of the current section.
+def list_albums(category, keyword=None):
     xbmcplugin.setPluginCategory(_handle, category)
-    # Set plugin content. It allows Kodi to select appropriate views
-    # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
-    # Get video categories
-    albums = moments.get_albums(category, search_string)
-    # Iterate through categories
+    albums = moments.get_albums(category, keyword)
+    
     for k in range(len(albums)):
-        # Create a list item with a text label and a thumbnail image.
         list_item = xbmcgui.ListItem(label=albums[k]['name'])
 
         list_item.setArt({'thumb': albums[k]['url'],
@@ -81,47 +72,35 @@ def list_albums(category, search_string=None):
         list_item.setInfo('video', {'title': albums[k]['name'],
                                     'mediatype': 'video'})
 
-        # Create a URL for a plugin recursive call.
-        # Example: plugin://plugin.video.example/?action=listing&category=Animals
-        url = get_url(action='show_album', list_id=urlencode({category+'_id':albums[k]['id']}))
-        # is_folder = True means that this item opens a sub-list of lower level items.
+        try:
+            passphrase = albums[k]['passphrase']
+        except:
+            passphrase = ''
+
+        url = get_url(action='show_album', list_id=urlencode({category+'_id':albums[k]['id']}), passphrase=passphrase)
         is_folder = True
-        # Add our item to the Kodi virtual folder listing.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     # xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
 
 
-def list_photos(list_id, keyword=None):
-    """
-    Create the list of playable videos in the Kodi interface.
-
-    :param category: Category name
-    :type category: str
-    """
-    # Set plugin category. It is displayed in some skins as the name
-    # of the current section.
+def list_photos(list_id, keyword=None, passphrase=None):        # Keyword for searches, passphrase for shared_with_me albums
     xbmcplugin.setPluginCategory(_handle, list_id)
-    # Set plugin content. It allows Kodi to select appropriate views
-    # for this type of content.
     xbmcplugin.setContent(_handle, 'images')
-    # Get the list of videos in the category.
-    photos = moments.get_photos(list_id, keyword)
+    photos = moments.get_photos(list_id, keyword, passphrase)
 
-    # Iterate through videos.
     for k in range(len(photos)):
-        # Create a list item with a text label and a thumbnail image.
         list_item = xbmcgui.ListItem(label=photos[k]['filename'])
 
         list_item.setArt({'thumb': photos[k]['url'],
                           'icon': photos[k]['url'],
                           'fanart': photos[k]['url']})
 
-        # Setup url for both videos and photos
         if photos[k]['type'] == 'video':
-            list_item.setProperty('IsPlayable', 'true')             # Set 'IsPlayable' property to 'true'.
+            list_item.setProperty('IsPlayable', 'true')
             list_item.setInfo('video', {'title': photos[k]['filename'],
                                     'mediatype': 'video'})
 
@@ -140,18 +119,31 @@ def list_photos(list_id, keyword=None):
             photo_id = str(photos[k]['additional']['thumbnail']['unit_id'])
 
             url = moments.get_photo_url(photo_id, photo_cache_key)
-            # url = get_url(action='play', content_id=photo_id+'/'+photo_cache_key)
 
             list_item.setMimeType('image/'+photos[k]['filename'].split('.')[-1])    # Predefine the mime type, otherwise it takes ages
             
-        # Add the list item to a virtual Kodi folder.
-        # is_folder = False means that this item won't open any sub-list.
         is_folder = False
-        # Add our item to the Kodi virtual folder listing.
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     # xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(_handle)
+
+
+def list_shared():
+    xbmcplugin.setPluginCategory(_handle, 'Shared')
+    xbmcplugin.setContent(_handle, 'videos')
+
+    list_item = xbmcgui.ListItem(label='Shared with others')
+    url = get_url(action='shared_with_others')
+    is_folder = True
+    xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+
+    list_item = xbmcgui.ListItem(label='Shared with me')
+    url = get_url(action='shared_with_me')
+    is_folder = True
+    xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
+
     xbmcplugin.endOfDirectory(_handle)
 
 
@@ -180,28 +172,12 @@ def list_search_items(keyword):
     return list_photos('search', keyword)
 
 
-def play_content(photo_ids):
-    """
-    Play a video by the provided path.
-
-    :param path: Fully-qualified video URL
-    :type path: str
-    """
-    ids = photo_ids.split('/')
-    photo_id = ids[0]
-    photo_cache_key = ids[1]
-
-    url = moments.get_photo_url(photo_id, photo_cache_key)
-
-    xbmc.executebuiltin('ShowPicture("{0}")'.format(url))
-
-
 def get_user_input():   
     kb = xbmc.Keyboard()
-    kb.doModal() # Onscreen keyboard appears
+    kb.doModal()            # Onscreen keyboard appears
     if not kb.isConfirmed():
         return
-    query = kb.getText() # User input
+    query = kb.getText()    # User input
     return query
 
 def router(paramstring):
@@ -223,6 +199,8 @@ def router(paramstring):
                 keyword = get_user_input()
                 if keyword is not None and len(keyword)>0:
                     list_search_results(keyword)
+            elif params['category'] == 'shared':
+                list_shared()
             else:
                 list_albums(params['category'])     # List albums within each category
         elif params['action'] == 'search_albums':
@@ -230,13 +208,15 @@ def router(paramstring):
         elif params['action'] == 'search_items':
             list_search_items(params['keyword'])
         elif params['action'] == 'show_album':
-            list_photos(params['list_id'])          # Display the list of videos in a provided category.
-        elif params['action'] == 'play':
-            play_content(params['content_id'])      # Display photo or play video from a provided URL.
+            if 'passphrase' in params.keys():
+                list_photos(params['list_id'], passphrase=params['passphrase'])
+            else:
+                list_photos(params['list_id'])
+        elif params['action'] == 'shared_with_others':
+            list_albums('shared_with_others')
+        elif params['action'] == 'shared_with_me':
+            list_albums('shared_with_me')
         else:
-            # If the provided paramstring does not contain a supported action
-            # we raise an exception. This helps to catch coding errors,
-            # e.g. typos in action names.
             raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
     else:
         # If the plugin is called from Kodi UI without any parameters,

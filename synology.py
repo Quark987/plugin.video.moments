@@ -54,12 +54,12 @@ class SynologyMoments(object):
 
         # video and recently_added are immediately forwarded to get_photos as there are no subalbums
         params = {'api':'SYNO.Photo.Thumbnail', 'type':'"unit"', 'size':'sm', 'method':'get','version':1, 'SynoToken':self.syno_token}
-        if category == 'shared':    # Depending on the category, a different request is send
-            data = {'api':'SYNO.Photo.Browse.Album', 'method':'list', 'version':2, 'limit':500, 'shared':'true', \
-                'offset':'0', 'sort_by':'start_time', 'sort_direction':'desc', 'additional':'["thumbnail"]'}    # Shared with me
-            
-            # data = {'api':'SYNO.Photo.Sharing', 'method':'22list_shared_with_me', 'version':1, 'limit':500, 'offset':0, \
-            #     'additional':'["thumbnail", "22sharing_info"]'}       # Shared with others
+        if category == 'shared_with_others':    # Depending on the category, a different request is send
+            data = {'api':'SYNO.Photo.Browse.Album', 'method':'list', 'version':2, 'limit':500, 'shared':'true', 
+                'offset':'0', 'sort_by':'start_time', 'sort_direction':'desc', 'additional':'["thumbnail"]'}
+        elif category == 'shared_with_me':
+            data = {'api':'SYNO.Photo.Sharing', 'method':'list_shared_with_me', 'version':1, 'limit':500, 'offset':0, 
+                'additional':'["thumbnail", "sharing_info"]'}
         elif category =='person':
             data = {'api':'SYNO.Photo.Browse.Person', 'method':'list', 'version':2, 'limit':500, 'offset':0, 
                 'additional':'["thumbnail"]', 'show_hidden':'false'}
@@ -90,6 +90,10 @@ class SynologyMoments(object):
                 else:
                     params['id'] = str(albums['data']['list'][k]['additional']['thumbnail']['unit_id'])
                 params['cache_key'] = str(albums['data']['list'][k]['additional']['thumbnail']['cache_key'])
+
+                if 'passphrase' in albums['data']['list'][k].keys():                    # Required for shared_with_me albums
+                    params['passphrase'] = albums['data']['list'][k]['passphrase']
+
                 albums['data']['list'][k]['url'] = url + '?' + urlencode(params) + kodi_header
             else:
                 albums['data']['list'][k]['url'] = ''
@@ -97,7 +101,7 @@ class SynologyMoments(object):
         return albums['data']['list']
 
 
-    def get_photos(self, list_id, keyword=None):
+    def get_photos(self, list_id, keyword=None, passphrase=None):
         url = 'http://{}:{}/webapi/entry.cgi'.format(self.nas_name, self.nas_port)
 
         if list_id == 'recently_added':
@@ -109,18 +113,24 @@ class SynologyMoments(object):
         elif list_id == 'search':
             data = {'api':'SYNO.Photo.Search', 'method':'list_item', 'version':3, 'limit':5000, 'offset':0, 'keyword':keyword, 
                 'additional':'["thumbnail","resolution","orientation","video_convert","video_meta"]', 'sort_by':'start_time'}
+        elif passphrase is not None:    # shared_with_me photos
+            data = {'api':'SYNO.Photo.Browse.Item', 'method':'list', 'version':3, 'limit':5000, 'passphrase':passphrase,
+                'offset':0, 'additional':'["thumbnail","resolution","orientation","video_convert","video_meta"]'}
         else:
-            data = {'api':'SYNO.Photo.Browse.Item', 'method':'list', 'version':3, 'limit':5000, \
+            data = {'api':'SYNO.Photo.Browse.Item', 'method':'list', 'version':3, 'limit':5000, 
                 'offset':0, 'additional':'["thumbnail","resolution","orientation","video_convert","video_meta"]'}
 
             id_key, id_value = list_id.split('=')
-            if id_key == 'search_id' or id_key == 'shared_id':
+            if id_key.startswith('search') or id_key.startswith('shared'):
                 id_key = 'album_id'
 
             data[id_key] = id_value # Add the proper id (geocoding_id, person_id, album_id, ...)
 
         photos = self.session.post(url, data=data, verify=False, cookies=self.cookies, headers=self.headers).json() # list the photos (and videos)
+
         params = {'api':'SYNO.Photo.Thumbnail', 'type':'"unit"', 'size':'sm', 'method':'get','version':1, 'SynoToken':self.syno_token}
+        if passphrase is not None:
+            params['passphrase'] = passphrase
 
         kodi_header = self.kodi_header()
 
