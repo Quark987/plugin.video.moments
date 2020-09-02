@@ -118,7 +118,7 @@ def list_photos(list_id, keyword=None, passphrase=None):        # Keyword for se
             photo_cache_key = photos[k]['additional']['thumbnail']['cache_key']
             photo_id = str(photos[k]['additional']['thumbnail']['unit_id'])
 
-            url = moments.get_photo_url(photo_id, photo_cache_key)
+            url = moments.get_photo_url(photo_id, photo_cache_key, passphrase)
 
             list_item.setMimeType('image/'+photos[k]['filename'].split('.')[-1])    # Predefine the mime type, otherwise it takes ages
             

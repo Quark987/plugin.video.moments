@@ -142,11 +142,15 @@ class SynologyMoments(object):
         return photos['data']['list']
     
 
-    def get_photo_url(self, photo_id, photo_cache_key):
+    def get_photo_url(self, photo_id, photo_cache_key, passphrase=None):
         kodi_header = self.kodi_header()
 
         params = {'api':'SYNO.Photo.Thumbnail', 'method':'get', 'version':1, 'SynoToken':self.syno_token, \
                 'size':'xl', 'cache_key':photo_cache_key, 'id':photo_id, 'type':'unit'}
+
+        if passphrase is not None:
+            params['passphrase'] = passphrase
+
         base_url = "http://{}:{}/webapi/entry.cgi.jpg?".format(self.nas_name, self.nas_port)
 
         return base_url + urlencode(params) + kodi_header
