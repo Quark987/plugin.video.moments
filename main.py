@@ -22,7 +22,7 @@ addon = xbmcaddon.Addon('plugin.video.moments')
 moments = SynologyMoments()
 
 category_titles = {'person':'People', 'shared':'Shared', 'concept':'Subjects', 'geocoding':'Places', 'recently_added':'Recently added',
-            'general_tag':'Tags', 'album':'Personal albums', 'video':'Videos', 'search':'Search'}
+            'general_tag':'Tags', 'album':'Personal albums', 'video':'Videos', 'search':'Search', 'shared_library':'Shared library'}
 
 def get_url(**kwargs):
     """
@@ -118,7 +118,7 @@ def list_photos(list_id, keyword=None, passphrase=None):        # Keyword for se
             photo_cache_key = photos[k]['additional']['thumbnail']['cache_key']
             photo_id = str(photos[k]['additional']['thumbnail']['unit_id'])
 
-            url = moments.get_photo_url(photo_id, photo_cache_key, passphrase)
+            url = moments.get_photo_url(list_id, photo_id, photo_cache_key, passphrase)
 
             list_item.setMimeType('image/'+photos[k]['filename'].split('.')[-1])    # Predefine the mime type, otherwise it takes ages
             
@@ -237,3 +237,7 @@ if __name__ == '__main__':
         router(sys.argv[2][1:])
     else:
         xbmcgui.Dialog().ok('Synology Moments', 'Failed to log in')
+
+        addon.openSettings()
+        xbmc.executebuiltin("Dialog.Close(all)")
+        #router(sys.argv[2][1:])
