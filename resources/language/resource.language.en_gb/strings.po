@@ -28,3 +28,7 @@ msgstr ""
 msgctxt "#30204"
 msgid "Port"
 msgstr ""
+
+msgctxt "#30500"
+msgid "Browse shared library"
+msgstr ""

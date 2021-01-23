@@ -22,7 +22,7 @@ addon = xbmcaddon.Addon('plugin.video.moments')
 moments = SynologyMoments()
 
 category_titles = {'person':'People', 'shared':'Shared', 'concept':'Subjects', 'geocoding':'Places', 'recently_added':'Recently added',
-            'general_tag':'Tags', 'album':'Personal albums', 'video':'Videos', 'search':'Search', 'shared_library':'Shared library'}
+            'general_tag':'Tags', 'album':'Personal albums', 'video':'Videos', 'search':'Search'}
 
 def get_url(**kwargs):
     """
@@ -232,11 +232,16 @@ if __name__ == '__main__':
     response = moments.login(addon.getSetting('username'),
                             addon.getSetting('password'),
                             addon.getSetting('host'),
-                            addon.getSetting('port'))
+                            addon.getSetting('port'),
+                            addon.getSetting('shared library'))
+
     if response == 'success':
         router(sys.argv[2][1:])
+    elif response == 'Shared library empty':
+        xbmcgui.Dialog().ok('Synology Moments', response)
+        router(sys.argv[2][1:])
     else:
-        xbmcgui.Dialog().ok('Synology Moments', 'Failed to log in')
+        xbmcgui.Dialog().ok('Synology Moments', response)
 
         addon.openSettings()
         xbmc.executebuiltin("Dialog.Close(all)")
