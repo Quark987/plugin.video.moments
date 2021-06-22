@@ -1,5 +1,5 @@
 import requests
-from urllib import urlencode, quote
+from urllib.parse import urlencode, quote
 import xbmc
 
 class SynologyMoments(object):
